@@ -5,13 +5,23 @@ import './App.css'
 import { Routes, Route } from "react-router-dom";
 import WeatherDetailPage from "./component/page/WeatherDetailPage";
 import WeatherMainPage from "./component/page/WeatherMainPage";
+import Detail from "./pages/Detail";
+import Home from "./pages/Home"; 
+import { BrowserRouter, Routes, Route } from "react-router-dom"; 
 
 function App() {
   return (
-      <Routes>
-        <Route path="/" element={<WeatherMainPage />} />
-        <Route path="/weather/:locationId" element={<WeatherDetailPage />} />
-      </Routes>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/detail/:id" element={<Detail />} />
+          
+          {/* 
+          <Route path="/" element={<WeatherMainPage />} />
+          <Route path="/weather/:locationId" element={<WeatherDetailPage />} /> 
+          */}
+        </Routes>
+      </BrowserRouter>
     );
 
 
