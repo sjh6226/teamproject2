@@ -1,55 +1,61 @@
-import { useState } from 'react';
+// src/components/Weather.jsx
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 function Weather() {
-  const [city, setCity] = useState('');
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
 
-  const fetchWeather = async () => {
-    if (!city) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
-      const response = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}&lang=kr`
-      );
-      setData(response.data);
-    } catch (err) {
-      setError('도시를 찾을 수 없습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchWeather = async () => {
+      const SERVICE_KEY = import.meta.env.VITE_KMA_API_KEY;
+      const url = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst';
+
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const baseDate = `${yyyy}${mm}${dd}`;
+
+      const baseTime = '0600'; // 또는 시간에 따라 계산 가능 (추후 개선 가능)
+
+      const params = {
+        serviceKey: SERVICE_KEY,
+        pageNo: 1,
+        numOfRows: 1000,
+        dataType: 'JSON',
+        base_date: baseDate,
+        base_time: baseTime,
+        nx: 60,
+        ny: 121
+      };
+
+      try {
+        const res = await axios.get(url, { params });
+        const items = res.data.response.body.items.item;
+        setWeather(items);
+      } catch (err) {
+        setError('날씨 정보를 불러오지 못했어요 😥');
+        console.error(err);
+      }
+    };
+
+    fetchWeather();
+  }, []);
+
+  if (error) return <p>{error}</p>;
+  if (!weather) return <p>로딩 중...</p>;
 
   return (
-    <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-      <h2>🌤 날씨 검색기</h2>
-      <input
-        type="text"
-        value={city}
-        placeholder="도시 이름 입력"
-        onChange={(e) => setCity(e.target.value)}
-      />
-      <button onClick={fetchWeather}>검색</button>
-
-      {loading && <p>로딩 중...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      {data && (
-        <div>
-          <h3>{data.name}</h3>
-          <p>{data.weather[0].description}</p>
-          <p>🌡 {data.main.temp}°C</p>
-          <p>💧 습도: {data.main.humidity}%</p>
-          <img
-            src={`https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`}
-            alt="weather icon"
-          />
-        </div>
-      )}
+    <div>
+      <h2>📍 수원시 팔달구 초단기 실황</h2>
+      <ul>
+        {weather.map((item, index) => (
+          <li key={index}>
+            {item.category}: {item.obsrValue}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
